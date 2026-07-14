@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Tier 3: The Database Layer
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: todo-postgres
+    environment:
+      POSTGRES_USER: devops_user
+      POSTGRES_PASSWORD: secure_password123
+      POSTGRES_DB: task_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Tier 2: The Logic Layer (Backend API)
+  backend-api:
+    build: ./backend
+    container_name: todo-backend-app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://devops_user:secure_password123@postgres-db:5432/task_database
+    depends_on:
+      - postgres-db
+
+  # Tier 1: The Presentation Layer (Frontend Website)
+  frontend-web:
+    build: ./frontend
+    container_name: todo-frontend-app
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend-api
+
+volumes:
+  postgres_data:
