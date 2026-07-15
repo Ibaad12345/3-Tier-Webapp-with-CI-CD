@@ -1,27 +1,42 @@
-# 1. The name of this automation pipeline
 name: Todo App CI-CD Pipeline
 
-# 2. What triggers this pipeline? (Run it every time we push to the "main" branch)
 on:
   push:
     branches: [ "main" ]
 
-# 3. What steps should the pipeline execute?
 jobs:
-  test-and-verify:
-    # Run these steps on a clean, virtual Ubuntu server hosted by GitHub
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # Step A: Download a copy of our repository files onto the virtual server
+      # 1. Checkout the repository files
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Step B: Run a test command to check our workspace
-      - name: Say Hello from the Cloud
-        run: |
-          echo "==========================================="
-          echo "🚀 Starting DevOps Pipeline Automation!"
-          echo "==========================================="
-          echo "Current repository files:"
-          ls -la
+      # 2. Log into Docker Hub using the secrets we just created
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3. Set up Docker Buildx (advanced caching and building tool)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 4. Build and Push the Python Backend Image
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          # This tags the image with your username and "latest"
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/todo-backend:latest
+
+      # 5. Build and Push the Nginx Frontend Image
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/todo-frontend:latest
