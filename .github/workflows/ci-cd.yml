@@ -1,0 +1,27 @@
+# 1. The name of this automation pipeline
+name: Todo App CI-CD Pipeline
+
+# 2. What triggers this pipeline? (Run it every time we push to the "main" branch)
+on:
+  push:
+    branches: [ "main" ]
+
+# 3. What steps should the pipeline execute?
+jobs:
+  test-and-verify:
+    # Run these steps on a clean, virtual Ubuntu server hosted by GitHub
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step A: Download a copy of our repository files onto the virtual server
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step B: Run a test command to check our workspace
+      - name: Say Hello from the Cloud
+        run: |
+          echo "==========================================="
+          echo "🚀 Starting DevOps Pipeline Automation!"
+          echo "==========================================="
+          echo "Current repository files:"
+          ls -la
